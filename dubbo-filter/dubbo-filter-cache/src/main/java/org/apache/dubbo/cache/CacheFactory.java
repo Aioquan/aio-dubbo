@@ -37,6 +37,7 @@ public interface CacheFactory {
      * @param invocation
      * @return Instance of Cache containing cached value against method url and invocation.
      */
+    // 基于 Dubbo SPI Adaptive 机制，加载对应的 Cache 实现，使用 URL.cache 属性。
     @Adaptive("cache")
     Cache getCache(URL url, Invocation invocation);
 

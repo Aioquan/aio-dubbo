@@ -32,9 +32,12 @@ public class Application {
     }
 
     @Configuration
+    // 使用 @EnableDubbo 注解，配置扫描 "org.apache.dubbo.demo.provider" 目录下的 @Service 和 @Reference Bean 对象。
     @EnableDubbo(scanBasePackages = "org.apache.dubbo.demo.provider")
+    // 使用 @PropertySource 注解，导入 "classpath:/spring/dubbo-provider.properties" 配置文件。
     @PropertySource("classpath:/spring/dubbo-provider.properties")
     static class ProviderConfiguration {
+        // 通过 @Bean 注解方法，创建 RegistryConfig Bean 对象，即注册中心。
         @Bean
         public RegistryConfig registryConfig() {
             RegistryConfig registryConfig = new RegistryConfig();

@@ -112,7 +112,7 @@ public class InjvmInvoker<T> extends AbstractInvoker<T> {
                 }
             }, executor);
             // save for 2.6.x compatibility, for example, TraceFilter in Zipkin uses com.alibaba.xxx.FutureAdapter
-            FutureContext.getContext().setCompatibleFuture(appResponseFuture);
+            FutureContext.getContext().setCompatibleFuture(appResponseFuture);// Compatible兼容的
             AsyncRpcResult result = new AsyncRpcResult(appResponseFuture, copiedInvocation);
             result.setExecutor(executor);
             return result;

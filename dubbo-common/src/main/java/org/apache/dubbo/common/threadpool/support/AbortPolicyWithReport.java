@@ -44,6 +44,8 @@ import static org.apache.dubbo.common.constants.CommonConstants.OS_WIN_PREFIX;
 /**
  * Abort Policy.
  * Log warn info when abort.
+ *
+ * 拒绝策略实现类。打印 JStack ，分析线程状态。
  */
 public class AbortPolicyWithReport extends ThreadPoolExecutor.AbortPolicy {
 

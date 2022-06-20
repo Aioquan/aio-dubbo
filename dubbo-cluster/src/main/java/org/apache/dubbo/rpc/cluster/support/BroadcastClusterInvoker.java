@@ -46,9 +46,13 @@ public class BroadcastClusterInvoker<T> extends AbstractClusterInvoker<T> {
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public Result doInvoke(final Invocation invocation, List<Invoker<T>> invokers, LoadBalance loadbalance) throws RpcException {
+        // 检查 invokers 即可用Invoker集合是否为空，如果为空，那么抛出异常
         checkInvokers(invokers, invocation);
+        // 设置已经调用的 Invoker 集合，到 Context 中
         RpcContext.getServiceContext().setInvokers((List) invokers);
+        // 保存最后一次调用的异常
         RpcException exception = null;
+        // 保存最后一次调用的结果
         Result result = null;
         URL url = getUrl();
         // The value range of broadcast.fail.threshold must be 0～100.
@@ -64,6 +68,7 @@ public class BroadcastClusterInvoker<T> extends AbstractClusterInvoker<T> {
 
         int failThresholdIndex = invokers.size() * broadcastFailPercent / MAX_BROADCAST_FAIL_PERCENT;
         int failIndex = 0;
+        // 循环候选的 Invoker 集合，调用所有 Invoker 对象。
         for (Invoker<T> invoker : invokers) {
             try {
                 result = invokeWithContext(invoker, invocation);
@@ -87,7 +92,7 @@ public class BroadcastClusterInvoker<T> extends AbstractClusterInvoker<T> {
                 }
             }
         }
-
+        // 若存在一个异常，抛出该异常
         if (exception != null) {
             if (failIndex == failThresholdIndex) {
                 logger.debug(

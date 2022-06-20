@@ -47,6 +47,8 @@ public @interface EnableDubbo {
 
     /**
      * Base packages to scan for annotated @Service classes.
+     * 配置 @DubboComponentScan 注解，扫描的包
+     *
      * <p>
      * Use {@link #scanBasePackageClasses()} for a type-safe alternative to String-based
      * package names.

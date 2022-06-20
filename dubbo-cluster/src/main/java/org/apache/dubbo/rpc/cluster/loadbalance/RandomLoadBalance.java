@@ -36,6 +36,8 @@ import static org.apache.dubbo.rpc.cluster.Constants.WEIGHT_KEY;
  * If the weights are different then it will use random.nextInt(w1 + w2 + ... + wn)
  * Note that if the performance of the machine is better than others, you can set a larger weight.
  * If the performance is not so good, you can set a smaller weight.
+ *
+ * 在一个截面上碰撞的概率高，但调用量越大分布越均匀，而且按概率使用权重后也比较均匀，有利于动态调整提供者权重。
  */
 public class RandomLoadBalance extends AbstractLoadBalance {
 
@@ -64,6 +66,7 @@ public class RandomLoadBalance extends AbstractLoadBalance {
         int[] weights = new int[length];
         // The sum of weights
         int totalWeight = 0;
+        // 计算总权限
         for (int i = 0; i < length; i++) {
             int weight = getWeight(invokers.get(i), invocation);
             // Sum
@@ -74,10 +77,13 @@ public class RandomLoadBalance extends AbstractLoadBalance {
                 sameWeight = false;
             }
         }
+        // 权重不相等，随机后，判断在哪个 Invoker 的权重区间中
         if (totalWeight > 0 && !sameWeight) {
             // If (not every invoker has the same weight & at least one invoker's weight>0), select randomly based on totalWeight.
+            // 随机
             int offset = ThreadLocalRandom.current().nextInt(totalWeight);
             // Return a invoker based on the random value.
+            // 区间判断
             for (int i = 0; i < length; i++) {
                 if (offset < weights[i]) {
                     return invokers.get(i);
@@ -85,6 +91,7 @@ public class RandomLoadBalance extends AbstractLoadBalance {
             }
         }
         // If all invokers have the same weight value or totalWeight=0, return evenly.
+        // 权重相等，平均随机
         return invokers.get(ThreadLocalRandom.current().nextInt(length));
     }
 

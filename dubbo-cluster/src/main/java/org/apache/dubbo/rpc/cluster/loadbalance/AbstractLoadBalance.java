@@ -39,6 +39,7 @@ public abstract class AbstractLoadBalance implements LoadBalance {
     /**
      * Calculate the weight according to the uptime proportion of warmup time
      * the new weight will be within 1(inclusive) to weight(inclusive)
+     * 进度百分比 * 权重
      *
      * @param uptime the uptime in milliseconds
      * @param warmup the warmup time in milliseconds
@@ -83,12 +84,16 @@ public abstract class AbstractLoadBalance implements LoadBalance {
             if (weight > 0) {
                 long timestamp = invoker.getUrl().getParameter(TIMESTAMP_KEY, 0L);
                 if (timestamp > 0L) {
+                    // 获得启动总时长
                     long uptime = System.currentTimeMillis() - timestamp;
                     if (uptime < 0) {
                         return 1;
                     }
+                    // 获得预热需要总时长。默认为 10 * 60 * 1000 = 10 分钟
                     int warmup = invoker.getUrl().getParameter(WARMUP_KEY, DEFAULT_WARMUP);
+                    // 处于预热中，计算当前的权重
                     if (uptime > 0 && uptime < warmup) {
+                        // 考虑到 JVM 自身会有预热的过程，所以服务提供者一启动就直接承担 100% 的流量，可能会出现很吃力的情况。因此权重的计算，默认自带了预热的过程。
                         weight = calculateWarmupWeight((int)uptime, warmup, weight);
                     }
                 }

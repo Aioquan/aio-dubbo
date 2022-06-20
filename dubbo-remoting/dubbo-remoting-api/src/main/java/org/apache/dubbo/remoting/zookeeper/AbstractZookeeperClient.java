@@ -69,6 +69,7 @@ public abstract class AbstractZookeeperClient<TargetDataListener, TargetChildLis
 
     @Override
     public void create(String path, boolean ephemeral) {
+        // 创建持久节点
         if (!ephemeral) {
             if (persistentExistNodePath.contains(path)) {
                 return;
@@ -78,13 +79,16 @@ public abstract class AbstractZookeeperClient<TargetDataListener, TargetChildLis
                 return;
             }
         }
+        // 循环创建父路径
         int i = path.lastIndexOf('/');
         if (i > 0) {
             create(path.substring(0, i), false);
         }
+        // 创建临时节点
         if (ephemeral) {
             createEphemeral(path);
         } else {
+            // 创建持久节点
             createPersistent(path);
             persistentExistNodePath.add(path);
         }

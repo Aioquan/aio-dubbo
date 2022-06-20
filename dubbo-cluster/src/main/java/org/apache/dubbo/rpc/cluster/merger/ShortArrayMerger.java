@@ -20,6 +20,9 @@ package org.apache.dubbo.rpc.cluster.merger;
 import org.apache.dubbo.common.utils.ArrayUtils;
 import org.apache.dubbo.rpc.cluster.Merger;
 
+import java.util.Objects;
+import java.util.stream.Stream;
+
 public class ShortArrayMerger implements Merger<short[]> {
 
     @Override

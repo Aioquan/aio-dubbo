@@ -30,7 +30,7 @@
     <packaging>pom</packaging>
 
     <name>${project.artifactId}</name>
-    <description>The parent project of dubbo</description>
+    <description>The parent project of dubbo.dubbo-3.0.5</description>
     <url>https://github.com/apache/dubbo</url>
     <inceptionYear>2011</inceptionYear>
     <licenses>

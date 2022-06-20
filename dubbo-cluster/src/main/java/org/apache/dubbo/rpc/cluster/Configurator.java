@@ -32,6 +32,10 @@ import static org.apache.dubbo.rpc.cluster.Constants.PRIORITY_KEY;
 
 /**
  * Configurator. (SPI, Prototype, ThreadSafe)
+ * 一个 Configurator 对象，对应一条配置规则。
+ * Configurator 有优先级的要求，所以实现 Comparable 接口。
+ * #getUrl() 接口方法，获得配置 URL ，里面带有配置规则。
+ * #configure(Url url) 接口方法，设置配置规则到指定 URL 中。
  *
  */
 public interface Configurator extends Comparable<Configurator> {

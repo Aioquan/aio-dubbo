@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Round robin load balance.
+ * 存在慢的提供者累积请求的问题，比如：第二台机器很慢，但没挂，当请求调到第二台时就卡在那，久而久之，所有请求都卡在调到第二台上。
  */
 public class RoundRobinLoadBalance extends AbstractLoadBalance {
     public static final String NAME = "roundrobin";

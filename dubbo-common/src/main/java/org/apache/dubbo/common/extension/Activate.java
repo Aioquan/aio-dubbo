@@ -25,6 +25,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * 自动激活条件的标记
+ * <p>
  * Activate. This annotation is useful for automatically activate certain extensions with the given criteria,
  * for examples: <code>@Activate</code> can be used to load certain <code>Filter</code> extension when there are
  * multiple implementations.
@@ -50,6 +52,13 @@ public @interface Activate {
      * @return group names to match
      * @see ExtensionLoader#getActivateExtension(URL, String, String)
      */
+    /**
+     * Group过滤条件。
+     * <br />
+     * 包含{@link ExtensionLoader#getActivateExtension}的group参数给的值，则返回扩展。
+     * <br />
+     * 如没有Group设置，则不过滤。
+     */
     String[] group() default {};
 
     /**
@@ -62,6 +71,15 @@ public @interface Activate {
      * @return URL parameter keys
      * @see ExtensionLoader#getActivateExtension(URL, String)
      * @see ExtensionLoader#getActivateExtension(URL, String, String)
+     */
+    /**
+     * Key过滤条件。包含{@link ExtensionLoader#getActivateExtension}的URL的参数Key中有，则返回扩展。
+     * <p/>
+     * 示例：<br/>
+     * 注解的值 <code>@Activate("cache,validatioin")</code>，
+     * 则{@link ExtensionLoader#getActivateExtension}的URL的参数有<code>cache</code>Key，或是<code>validatioin</code>则返回扩展。
+     * <br/>
+     * 如没有设置，则不过滤。
      */
     String[] value() default {};
 
@@ -85,7 +103,7 @@ public @interface Activate {
 
     /**
      * Absolute ordering info, optional
-     *
+     * <p>
      * Ascending order, smaller values will be in the front o the list.
      *
      * @return absolute ordering info

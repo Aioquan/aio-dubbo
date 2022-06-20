@@ -57,6 +57,7 @@ public class EagerThreadPool implements ThreadPool {
                 alive,
                 TimeUnit.MILLISECONDS,
                 taskQueue,
+                // 命名内部线程工厂
                 new NamedInternalThreadFactory(name, true),
                 new AbortPolicyWithReport(name, url));
         taskQueue.setExecutor(executor);

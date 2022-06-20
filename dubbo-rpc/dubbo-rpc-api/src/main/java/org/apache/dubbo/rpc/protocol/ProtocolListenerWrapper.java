@@ -76,6 +76,7 @@ public class ProtocolListenerWrapper implements Protocol {
 
         Invoker<T> invoker = protocol.refer(type, url);
         if (StringUtils.isEmpty(url.getParameter(REGISTRY_CLUSTER_TYPE_KEY))) {
+            // 获得 InvokerListener 数组
             invoker = new ListenerInvokerWrapper<>(invoker,
                     Collections.unmodifiableList(
                         ScopeModelUtil.getExtensionLoader(InvokerListener.class, invoker.getUrl().getScopeModel())

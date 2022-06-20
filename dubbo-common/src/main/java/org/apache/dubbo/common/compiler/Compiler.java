@@ -30,7 +30,7 @@ public interface Compiler {
      *
      * @param code        Java source code
      * @param classLoader classloader
-     * @return Compiled class
+     * @return Compiled class 编译后的类
      */
     Class<?> compile(String code, ClassLoader classLoader);
 

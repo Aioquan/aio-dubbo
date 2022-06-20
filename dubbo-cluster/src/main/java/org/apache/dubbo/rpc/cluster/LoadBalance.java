@@ -31,8 +31,9 @@ import java.util.List;
  * <p>
  * <a href="http://en.wikipedia.org/wiki/Load_balancing_(computing)">Load-Balancing</a>
  *
- * @see org.apache.dubbo.rpc.cluster.Cluster#join(Directory)
+ * @see org.apache.dubbo.rpc.cluster.Cluster#join(org.apache.dubbo.rpc.cluster.Directory, boolean)
  */
+// Dubbo SPI 拓展点，默认为 "random" ，即随机。
 @SPI(RandomLoadBalance.NAME)
 public interface LoadBalance {
 

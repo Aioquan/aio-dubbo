@@ -227,6 +227,8 @@ public class RegistryProtocol implements Protocol, ScopeModelAware {
         // FIXME When the provider subscribes, it will affect the scene : a certain JVM exposes the service and call
         //  the same service. Because the subscribed is cached key with the name of the service, it causes the
         //  subscription information to cover.
+        // 当提供者订阅时，它将影响场景:某个JVM公开服务并调用相同的服务。
+        // 因为订阅的是带有服务名称的缓存键，所以它会覆盖订阅信息。
         final URL overrideSubscribeUrl = getSubscribedOverrideUrl(providerUrl);
         final OverrideListener overrideSubscribeListener = new OverrideListener(overrideSubscribeUrl, originInvoker);
         Map<URL, NotifyListener> overrideListeners = getProviderConfigurationListener(providerUrl).getOverrideListeners();
@@ -466,25 +468,32 @@ public class RegistryProtocol implements Protocol, ScopeModelAware {
     @Override
     @SuppressWarnings("unchecked")
     public <T> Invoker<T> refer(Class<T> type, URL url) throws RpcException {
+        // 获得真实的注册中心的 URL
         url = getRegistryUrl(url);
+        // 获得注册中心
         Registry registry = getRegistry(url);
         if (RegistryService.class.equals(type)) {
             return proxyFactory.getInvoker((T) registry, type, url);
         }
 
+        // 获得服务引用配置参数集合
         // group="a,b" or group="*"
         Map<String, String> qs = (Map<String, String>) url.getAttribute(REFER_KEY);
         String group = qs.get(GROUP_KEY);
+        // 分组聚合，参见文档 http://dubbo.apache.org/zh-cn/docs/user/demos/group-merger.html
         if (group != null && group.length() > 0) {
             if ((COMMA_SPLIT_PATTERN.split(group)).length > 1 || "*".equals(group)) {
+                // 执行服务引用
                 return doRefer(Cluster.getCluster(url.getScopeModel(), MergeableCluster.NAME), registry, type, url, qs);
             }
         }
 
         Cluster cluster = Cluster.getCluster(url.getScopeModel(), qs.get(CLUSTER_KEY));
+        // 执行服务引用
         return doRefer(cluster, registry, type, url, qs);
     }
 
+    // 执行服务引用，返回 Invoker 对象
     protected <T> Invoker<T> doRefer(Cluster cluster, Registry registry, Class<T> type, URL url, Map<String, String> parameters) {
         Map<String, Object> consumerAttribute = new HashMap<>(url.getAttributes());
         consumerAttribute.remove(REFER_KEY);
@@ -496,6 +505,7 @@ public class RegistryProtocol implements Protocol, ScopeModelAware {
             parameters,
             consumerAttribute);
         url = url.putAttribute(CONSUMER_URL_KEY, consumerUrl);
+        // Migration迁移
         ClusterInvoker<T> migrationInvoker = getMigrationInvoker(this, cluster, registry, type, url, consumerUrl);
         return interceptInvoker(migrationInvoker, url, consumerUrl, url);
     }
@@ -509,12 +519,13 @@ public class RegistryProtocol implements Protocol, ScopeModelAware {
     }
 
     /**
-     * This method tries to load all RegistryProtocolListener definitions, which are used to control the behaviour of invoker by interacting with defined, then uses those listeners to
-     * change the status and behaviour of the MigrationInvoker.
+     * This method tries to load all RegistryProtocolListener definitions, which are used to control the behaviour of invoker by interacting with defined, then uses those listeners tochange the status and behaviour of the MigrationInvoker.
+     * 这方法试图加载所有侦听器注册协议定义,用来控制调用程序的行为的相互作用定义,然后使用这些Listener改变迁移调用程序的状态和行为
      * <p>
      * Currently available Listener is MigrationRuleListener, one used to control the Migration behaviour with dynamically changing rules.
+     * 目前可用的侦听器MigrationRuleListener,一个用来控制迁移行为与动态变化规律。
      *
-     * @param invoker     MigrationInvoker that determines which type of invoker list to use
+     * @param invoker     MigrationInvoker that determines which type of invoker list to use迁移调用程序决定使用哪种类型的调用程序列表
      * @param url         The original url generated during refer, more like a registry:// style url
      * @param consumerUrl Consumer url representing current interface and its config
      * @param registryURL The actual registry url, zookeeper:// for example

@@ -16,6 +16,7 @@
  */
 package org.apache.dubbo.rpc.cluster.support;
 
+import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.Version;
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
@@ -39,10 +40,14 @@ import static org.apache.dubbo.common.constants.CommonConstants.RETRIES_KEY;
 
 /**
  * When invoke fails, log the initial error and retry other invokers (retry n times, which means at most n different invokers will be invoked)
+ * 当调用失败时,记录初始误差和其他重试调用器(最多重试n次,这意味着n不同调用器将调用)
  * Note that retry causes latency.
+ * 注意,重试延迟原因。
  * <p>
  * <a href="http://en.wikipedia.org/wiki/Failover">Failover</a>
  *
+ * 失败自动切换，当出现失败，重试其它服务器。通常用于读操作，但重试会带来更长延迟。可通过 retries="2" 来设置重试次数(不含第一次)。
+ * 实际逻辑很简单：循环，查找一个 Invoker 对象，进行调用，直到成功。
  */
 public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
 
@@ -52,32 +57,46 @@ public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
         super(directory);
     }
 
+    // 实际逻辑很简单：循环，查找一个 Invoker 对象，进行调用，直到成功。
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public Result doInvoke(Invocation invocation, final List<Invoker<T>> invokers, LoadBalance loadbalance) throws RpcException {
         List<Invoker<T>> copyInvokers = invokers;
+        // 检查copyinvokers即可用Invoker集合是否为空，如果为空，那么抛出异常
         checkInvokers(copyInvokers, invocation);
         String methodName = RpcUtils.getMethodName(invocation);
+        // 得到最大可调用次数：最大可重试次数+1，默认最大可重试次数Constants.DEFAULT_RETRIES=2
         int len = calculateInvokeTimes(methodName);
         // retry loop.
+        // 保存最后一次调用的异常
         RpcException le = null; // last exception.
+        // 保存已经调用过的Invoker
         List<Invoker<T>> invoked = new ArrayList<Invoker<T>>(copyInvokers.size()); // invoked invokers.
         Set<String> providers = new HashSet<String>(len);
+        // failover机制核心实现：如果出现调用失败，那么重试其他服务器
         for (int i = 0; i < len; i++) {
             //Reselect before retry to avoid a change of candidate `invokers`.
             //NOTE: if `invokers` changed, then `invoked` also lose accuracy.
+            // 重试时，进行重新选择，避免重试时invoker列表已发生变化.
+            // 注意：如果列表发生了变化，那么invoked判断会失效，因为invoker示例已经改变
             if (i > 0) {
                 checkWhetherDestroyed();
+                // 根据Invocation调用信息从Directory中获取所有可用Invoker
                 copyInvokers = list(invocation);
                 // check again
                 checkInvokers(copyInvokers, invocation);
             }
+            // 根据负载均衡机制从copyinvokers中选择一个Invoker
             Invoker<T> invoker = select(loadbalance, invocation, copyInvokers, invoked);
+            // 保存每次调用的Invoker
             invoked.add(invoker);
+            // 设置已经调用的 Invoker 集合，到 Context 中
             RpcContext.getServiceContext().setInvokers((List) invoked);
             boolean success = false;
             try {
+                // RPC 调用得到 Result
                 Result result = invokeWithContext(invoker, invocation);
+                // 重试过程中，将最后一次调用的异常信息以 warn 级别日志输出
                 if (le != null && logger.isWarnEnabled()) {
                     logger.warn("Although retry the method " + methodName
                             + " in the service " + getInterface().getName()
@@ -92,6 +111,7 @@ public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
                 success = true;
                 return result;
             } catch (RpcException e) {
+                // 如果是业务性质的异常，不再重试，直接抛出
                 if (e.isBiz()) { // biz exception.
                     throw e;
                 }
@@ -104,6 +124,7 @@ public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
                 }
             }
         }
+        // 最大可调用次数用完还得到Result的话，抛出RpcException异常：重试了N次还是失败，并输出最后一次异常信息
         throw new RpcException(le.getCode(), "Failed to invoke the method "
                 + methodName + " in the service " + getInterface().getName()
                 + ". Tried " + len + " times of the providers " + providers
@@ -115,7 +136,8 @@ public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
     }
 
     private int calculateInvokeTimes(String methodName) {
-        int len = getUrl().getMethodParameter(methodName, RETRIES_KEY, DEFAULT_RETRIES) + 1;
+        URL url = getUrl();
+        int len = url.getMethodParameter(methodName, RETRIES_KEY, DEFAULT_RETRIES) + 1;
         RpcContext rpcContext = RpcContext.getClientAttachment();
         Object retry = rpcContext.getObjectAttachment(RETRIES_KEY);
         if (retry instanceof Number) {

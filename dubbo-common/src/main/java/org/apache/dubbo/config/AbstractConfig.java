@@ -66,6 +66,7 @@ import static org.apache.dubbo.config.Constants.PARAMETERS;
 
 /**
  * Utility methods and public methods for parsing configuration
+ * 主要提供配置解析与校验相关的工具方法
  *
  * @export
  */
@@ -91,6 +92,8 @@ public abstract class AbstractConfig implements Serializable {
 
     /**
      * The config id
+     * 配置对象的编号，适用于除了 API 配置之外的三种配置方式，标记一个配置对象，可用于对象之间的引用。
+     * 例如 XML 的 <dubbo:service provider="${PROVIDER_ID}"> ，其中 provider 为 <dubbo:provider> 的 ID 属性。
      */
     private String id;
 
@@ -161,15 +164,20 @@ public abstract class AbstractConfig implements Serializable {
         appendParameters0(parameters, config, null, false);
     }
 
+    // 将配置对象的属性，添加到参数集合
     private static void appendParameters0(Map<String, String> parameters, Object config, String prefix, boolean asParameters) {
         if (config == null) {
             return;
         }
         // If asParameters=false, it means append attributes, ignore @Parameter annotation's attributes except 'append' and 'attribute'
+        // 如果asParameters=false，它意味着附加属性，忽略@Parameter注释的属性，除了'append'和'attribute'
 
         // How to select the appropriate one from multiple getter methods of the property?
         // e.g. Using String getGeneric() or Boolean isGeneric()? Judge by field type ?
         // Currently, use @Parameter.attribute() to determine whether it is an attribute.
+        // 如何从属性的多个getter方法中选择合适的一个?
+        // 例如，使用字符串getGeneric()或布尔isGeneric()?根据领域类型判断?
+        // 目前，使用@Parameter.attribute()来确定它是否是一个属性。
 
         BeanInfo beanInfo = getBeanInfo(config.getClass());
         for (MethodDescriptor methodDescriptor : beanInfo.getMethodDescriptors()) {

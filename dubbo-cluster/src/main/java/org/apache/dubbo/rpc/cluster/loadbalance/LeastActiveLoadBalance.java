@@ -26,6 +26,8 @@ import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * LeastActiveLoadBalance
+ *
+ * 最少活跃调用数
  * <p>
  * Filter the number of invokers with the least number of active calls and count the weights and quantities of these invokers.
  * If there is only one invoker, use the invoker directly;

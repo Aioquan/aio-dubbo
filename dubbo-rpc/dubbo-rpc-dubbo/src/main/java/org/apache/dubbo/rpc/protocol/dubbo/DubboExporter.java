@@ -29,6 +29,14 @@ public class DubboExporter<T> extends AbstractExporter<T> {
 
     private final String key;
 
+    /**
+     * Exporter 集合
+     *
+     * key: 服务键
+     *
+     * 该值实际就是 {@link org.apache.dubbo.rpc.protocol.AbstractProtocol#exporterMap}
+     *
+     */
     private final Map<String, Exporter<?>> exporterMap;
 
     public DubboExporter(Invoker<T> invoker, String key, Map<String, Exporter<?>> exporterMap) {

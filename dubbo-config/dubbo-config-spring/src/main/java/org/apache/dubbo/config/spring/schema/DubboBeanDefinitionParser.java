@@ -71,6 +71,7 @@ import static org.apache.dubbo.config.spring.util.SpringCompatUtils.getPropertyV
 
 /**
  * AbstractBeanDefinitionParser
+ * Dubbo Bean 定义解析器
  *
  * @export
  */
@@ -91,6 +92,7 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
         this.beanClass = beanClass;
     }
 
+    // 解析方法【主流程】
     @SuppressWarnings("unchecked")
     private static RootBeanDefinition parse(Element element, ParserContext parserContext, Class<?> beanClass, boolean registered) {
         RootBeanDefinition beanDefinition = new RootBeanDefinition();
@@ -118,6 +120,7 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
         }
         beanDefinition.setAttribute(BEAN_NAME, beanName);
 
+        // 处理 <dubbo:protocol/> 特殊情况
         if (ProtocolConfig.class.equals(beanClass)) {
 //            for (String name : parserContext.getRegistry().getBeanDefinitionNames()) {
 //                BeanDefinition definition = parserContext.getRegistry().getBeanDefinition(name);
@@ -562,6 +565,7 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
         }
     }
 
+    // 解析方法【主流程】
     @Override
     public BeanDefinition parse(Element element, ParserContext parserContext) {
         return parse(element, parserContext, beanClass, true);

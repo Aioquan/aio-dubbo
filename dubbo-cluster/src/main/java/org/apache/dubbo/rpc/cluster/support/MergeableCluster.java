@@ -20,6 +20,7 @@ import org.apache.dubbo.rpc.RpcException;
 import org.apache.dubbo.rpc.cluster.Directory;
 import org.apache.dubbo.rpc.cluster.support.wrapper.AbstractCluster;
 
+// Merger 的使用，需要设置 Cluster 的实现类为 MergeableCluster 。但是呢，它的配置方式，和其他 Cluster 实现类不同。
 public class MergeableCluster extends AbstractCluster {
 
     public static final String NAME = "mergeable";

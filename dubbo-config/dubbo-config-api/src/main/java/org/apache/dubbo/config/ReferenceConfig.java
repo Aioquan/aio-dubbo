@@ -272,6 +272,7 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
 
         serviceMetadata.getAttachments().putAll(referenceParameters);
 
+        // 开始引用服务
         ref = createProxy(referenceParameters);
 
         serviceMetadata.setTarget(ref);
@@ -370,6 +371,7 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
 
     @SuppressWarnings({"unchecked"})
     private T createProxy(Map<String, String> referenceParameters) {
+        // shouldJvmRefer
         if (shouldJvmRefer(referenceParameters)) {
             createInvokerForLocal(referenceParameters);
         } else {
@@ -383,6 +385,7 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
                     aggregateUrlFromRegistry(referenceParameters);
                 }
             }
+            // createInvokerForRemote
             createInvokerForRemote();
         }
 
@@ -476,16 +479,17 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void createInvokerForRemote() {
-        if (urls.size() == 1) {
+        if (urls.size() == 1) { // 单 `urls` 时，引用服务，返回 Invoker 对象
             URL curUrl = urls.get(0);
-            invoker = protocolSPI.refer(interfaceClass,curUrl);
-            if (!UrlUtils.isRegistry(curUrl)){
+            invoker = protocolSPI.refer(interfaceClass, curUrl);
+            if (!UrlUtils.isRegistry(curUrl)) {
                 List<Invoker<?>> invokers = new ArrayList<>();
                 invokers.add(invoker);
                 invoker = Cluster.getCluster(scopeModel, Cluster.DEFAULT).join(new StaticDirectory(curUrl, invokers), true);
             }
-        } else {
+        } else { // 循环 `urls` ，引用服务，返回 Invoker 对象
             List<Invoker<?>> invokers = new ArrayList<>();
+            // 注册中心的 URL
             URL registryUrl = null;
             for (URL url : urls) {
                 // For multi-registry scenarios, it is not checked whether each referInvoker is available.
@@ -497,12 +501,13 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
                     registryUrl = url;
                 }
             }
-
+            // 有注册中心
             if (registryUrl != null) {
                 // registry url is available
                 // for multi-subscription scenario, use 'zone-aware' policy by default
                 String cluster = registryUrl.getParameter(CLUSTER_KEY, ZoneAwareCluster.NAME);
                 // The invoker wrap sequence would be: ZoneAwareClusterInvoker(StaticDirectory) -> FailoverClusterInvoker
+                // 调用程序包的顺序是:ZoneAwareClusterInvoker(StaticDirectory)- >FailoverClusterInvoker
                 // (RegistryDirectory, routing happens here) -> Invoker
                 invoker = Cluster.getCluster(registryUrl.getScopeModel(), cluster, false).join(new StaticDirectory(registryUrl, invokers), false);
             } else {
@@ -598,6 +603,12 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
      * 3. otherwise, check scope parameter
      * 4. if scope is not specified but the target service is provided in the same JVM, then prefer to make the local
      * call, which is the default behavior
+     * <p>
+     * 从配置中找出应该引用同一个JVM中的服务。默认行为为true
+     * 1。如果指定了injvm，那么使用它
+     * 2。然后，如果指定了url，则假定它是远程调用
+     * 3。否则，请检查范围参数
+     * 4。如果没有指定作用域，但目标服务是在同一个JVM中提供的，则宁愿进行本地调用，这是默认行为
      */
     protected boolean shouldJvmRefer(Map<String, String> map) {
         URL tmpUrl = new ServiceConfigURL("temp", "localhost", 0, map);
@@ -608,7 +619,8 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
                 isJvmRefer = false;
             } else {
                 // by default, reference local service if there is
-                isJvmRefer = InjvmProtocol.getInjvmProtocol(getScopeModel()).isInjvmRefer(tmpUrl);
+                InjvmProtocol injvmProtocol = InjvmProtocol.getInjvmProtocol(getScopeModel());
+                isJvmRefer = injvmProtocol.isInjvmRefer(tmpUrl);
             }
         } else {
             isJvmRefer = isInjvm();

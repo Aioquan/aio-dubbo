@@ -62,6 +62,8 @@ import static org.apache.dubbo.rpc.cluster.Constants.REFER_KEY;
 
 /**
  * Abstract implementation of Directory: Invoker list returned from this Directory's list method have been filtered by Routers
+ * 摘要实现目录:从这个目录的列表方法返回调用程序列表过滤了路由器
+ * 实现了公用的路由规则( Router )的逻辑。
  */
 public abstract class AbstractDirectory<T> implements Directory<T> {
 
@@ -72,6 +74,11 @@ public abstract class AbstractDirectory<T> implements Directory<T> {
 
     private volatile boolean destroyed = false;
 
+    /**
+     * 消费者 URL
+     *
+     * 若未显示调用 {@link AbstractDirectory#AbstractDirectory(URL, RouterChain, boolean)} 构造方法，consumerUrl 等于 {@link #url}
+     */
     protected volatile URL consumerUrl;
 
     protected RouterChain<T> routerChain;
@@ -185,6 +192,7 @@ public abstract class AbstractDirectory<T> implements Directory<T> {
             availableInvokers = invokers.clone();
         }
 
+        // 获得所有 Invoker 集合
         List<Invoker<T>> routedResult = doList(availableInvokers, invocation);
         if (routedResult.isEmpty()) {
             logger.warn("No provider available after connectivity filter for the service " + getConsumerUrl().getServiceKey()

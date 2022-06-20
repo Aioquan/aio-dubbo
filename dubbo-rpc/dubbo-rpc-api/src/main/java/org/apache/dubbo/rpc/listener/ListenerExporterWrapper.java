@@ -27,6 +27,7 @@ import java.util.List;
 
 /**
  * ListenerExporter
+ * 实现 Exporter 接口，具有监听器功能的 Exporter 包装器
  */
 public class ListenerExporterWrapper<T> implements Exporter<T> {
 
@@ -34,6 +35,7 @@ public class ListenerExporterWrapper<T> implements Exporter<T> {
 
     private final Exporter<T> exporter;
 
+    // Exporter 监听器数组
     private final List<ExporterListener> listeners;
 
     public ListenerExporterWrapper(Exporter<T> exporter, List<ExporterListener> listeners) {

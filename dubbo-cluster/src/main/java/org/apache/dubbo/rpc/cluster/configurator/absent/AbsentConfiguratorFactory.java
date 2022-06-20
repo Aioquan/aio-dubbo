@@ -22,7 +22,7 @@ import org.apache.dubbo.rpc.cluster.ConfiguratorFactory;
 
 /**
  * AbsentConfiguratorFactory
- *
+ * Absent缺勤的，缺席的；不存在的，缺乏的
  */
 public class AbsentConfiguratorFactory implements ConfiguratorFactory {
 

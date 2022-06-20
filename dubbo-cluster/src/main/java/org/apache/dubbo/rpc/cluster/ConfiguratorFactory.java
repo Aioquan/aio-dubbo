@@ -33,6 +33,7 @@ public interface ConfiguratorFactory {
      * @param url - configurator url.
      * @return configurator instance.
      */
+    // 基于 Dubbo SPI Adaptive 机制，加载对应的 Configurator 实现，使用 URL.protocol 属性。
     @Adaptive("protocol")
     Configurator getConfigurator(URL url);
 

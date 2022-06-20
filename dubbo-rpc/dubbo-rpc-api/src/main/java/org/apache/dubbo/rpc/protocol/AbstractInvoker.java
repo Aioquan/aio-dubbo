@@ -38,6 +38,7 @@ import org.apache.dubbo.rpc.RpcContext;
 import org.apache.dubbo.rpc.RpcException;
 import org.apache.dubbo.rpc.RpcInvocation;
 import org.apache.dubbo.rpc.protocol.dubbo.FutureAdapter;
+import org.apache.dubbo.rpc.proxy.AbstractProxyInvoker;
 import org.apache.dubbo.rpc.support.RpcUtils;
 
 import java.lang.reflect.InvocationTargetException;
@@ -55,6 +56,8 @@ import static org.apache.dubbo.rpc.Constants.SERIALIZATION_ID_KEY;
 
 /**
  * This Invoker works on Consumer side.
+ * on provider side {@link org.apache.dubbo.rpc.proxy.AbstractProxyInvoker}
+ * 实现 Invoker 接口，抽象 Invoker 类，主要提供了 Invoker 的通用属性和 #invoke(Invocation) 方法的通用实现。
  */
 public abstract class AbstractInvoker<T> implements Invoker<T> {
 
@@ -62,16 +65,19 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
 
     /**
      * Service interface type
+     * 接口类型
      */
     private final Class<T> type;
 
     /**
      * {@link Node} url
+     * 服务 URL
      */
     private final URL url;
 
     /**
      * {@link Invoker} default attachment
+     * 公用的隐式传参。在 {@link #invoke(Invocation)} 方法中使用。
      */
     private final Map<String, Object> attachment;
 

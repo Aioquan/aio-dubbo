@@ -45,9 +45,11 @@ public class ListenerInvokerWrapper<T> implements Invoker<T> {
         }
         this.invoker = invoker;
         this.listeners = listeners;
+        // 执行监听器
         if (CollectionUtils.isNotEmpty(listeners)) {
             for (InvokerListener listener : listeners) {
                 if (listener != null) {
+                    // 若执行过程中发生异常 RuntimeException ，仅打印错误日志，继续执行，最终不抛出异常。
                     try {
                         listener.referred(invoker);
                     } catch (Throwable t) {

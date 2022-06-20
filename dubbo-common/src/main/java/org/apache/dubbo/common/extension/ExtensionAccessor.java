@@ -18,6 +18,8 @@ package org.apache.dubbo.common.extension;
 
 /**
  * Uniform accessor for extension
+ *
+ * Accessor: 访问器
  */
 public interface ExtensionAccessor {
 

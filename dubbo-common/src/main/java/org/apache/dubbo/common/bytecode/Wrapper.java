@@ -40,6 +40,10 @@ import java.util.stream.Collectors;
 
 /**
  * Wrapper.
+ * 使用 Javassist 技术。
+ * 不同于生成的 proxy类，不实现 Service 接口类，而是在 #invokeMethod(paramObject, paramString, paramArrayOfClass, paramArrayOfObject) 方法，
+ * 提供给 Invoker#invoke(invocation) 中调用，统一分发请求到 Service 对应的方法。从职能上来看，有一点像硬编码的 Controller 。
+ * 一个生成的 Wrapper类，只对应一个 Service
  */
 public abstract class Wrapper {
     private static final Map<Class<?>, Wrapper> WRAPPER_MAP = new ConcurrentHashMap<Class<?>, Wrapper>(); //class wrapper map

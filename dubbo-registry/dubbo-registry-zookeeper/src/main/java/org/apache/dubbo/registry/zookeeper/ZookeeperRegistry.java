@@ -74,12 +74,15 @@ public class ZookeeperRegistry extends CacheableFailbackRegistry {
         if (url.isAnyHost()) {
             throw new IllegalStateException("registry address == null");
         }
+        // 获得 Zookeeper 根节点
         String group = url.getGroup(DEFAULT_ROOT);
         if (!group.startsWith(PATH_SEPARATOR)) {
             group = PATH_SEPARATOR + group;
         }
         this.root = group;
+        // 创建 Zookeeper Client
         zkClient = zookeeperTransporter.connect(url);
+        // 添加 StateListener 对象。该监听器，在重连时，调用恢复方法。
         zkClient.addStateListener((state) -> {
             if (state == StateListener.RECONNECTED) {
                 logger.warn("Trying to fetch the latest urls, in case there're provider changes during connection loss.\n" +
@@ -89,6 +92,7 @@ public class ZookeeperRegistry extends CacheableFailbackRegistry {
             } else if (state == StateListener.NEW_SESSION_CREATED) {
                 logger.warn("Trying to re-register urls and re-subscribe listeners of this instance to registry...");
                 try {
+                    // 重新发起注册和订阅
                     ZookeeperRegistry.this.recover();
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);

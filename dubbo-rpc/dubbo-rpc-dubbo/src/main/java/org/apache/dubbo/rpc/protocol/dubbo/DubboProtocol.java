@@ -119,6 +119,7 @@ public class DubboProtocol extends AbstractProtocol {
             }
 
             Invocation inv = (Invocation) message;
+            // 获得请求对应的 Invoker 对象
             Invoker<?> invoker = getInvoker(channel, inv);
             inv.setServiceModel(invoker.getUrl().getServiceModel());
             // switch TCCL
@@ -126,6 +127,7 @@ public class DubboProtocol extends AbstractProtocol {
                 Thread.currentThread().setContextClassLoader(invoker.getUrl().getServiceModel().getClassLoader());
             }
             // need to consider backward-compatibility if it's a callback
+            // 如果是callback 需要处理高版本调用低版本的问题
             if (Boolean.TRUE.toString().equals(inv.getObjectAttachments().get(IS_CALLBACK_SERVICE_INVOKE))) {
                 String methodsStr = invoker.getUrl().getParameters().get("methods");
                 boolean hasMethod = false;
@@ -148,7 +150,9 @@ public class DubboProtocol extends AbstractProtocol {
                     return null;
                 }
             }
+            // 设置调用方的地址
             RpcContext.getServiceContext().setRemoteAddress(channel.getRemoteAddress());
+            // 执行调用
             Result result = invoker.invoke(inv);
             return result.thenApply(Function.identity());
         }
@@ -292,6 +296,7 @@ public class DubboProtocol extends AbstractProtocol {
         checkDestroyed();
         URL url = invoker.getUrl();
 
+        // 创建 DubboExporter 对象，并添加到 `exporterMap` 。
         // export service.
         String key = serviceKey(url);
         DubboExporter<T> exporter = new DubboExporter<T>(invoker, key, exporterMap);
@@ -310,7 +315,9 @@ public class DubboProtocol extends AbstractProtocol {
             }
         }
 
+        // 启动服务器
         openServer(url);
+        // 初始化序列化优化器
         optimizeSerialization(url);
 
         return exporter;
@@ -424,18 +431,22 @@ public class DubboProtocol extends AbstractProtocol {
     @Override
     public <T> Invoker<T> protocolBindingRefer(Class<T> serviceType, URL url) throws RpcException {
         checkDestroyed();
+        // 初始化序列化优化器
         optimizeSerialization(url);
 
         // create rpc invoker.
+        // 获得远程通信客户端数组
+        // 创建 DubboInvoker 对象
         DubboInvoker<T> invoker = new DubboInvoker<T>(serviceType, url, getClients(url), invokers);
         invokers.add(invoker);
 
         return invoker;
     }
 
+    // 获得连接服务提供者的远程通信客户端数组
     private ExchangeClient[] getClients(URL url) {
         // whether to share connection
-
+        // 是否共享连接
         boolean useShareConnect = false;
 
         int connections = url.getParameter(CONNECTIONS_KEY, 0);
@@ -624,6 +635,8 @@ public class DubboProtocol extends AbstractProtocol {
         /**
          * Instance of url is InstanceAddressURL, so addParameter actually adds parameters into ServiceInstance,
          * which means params are shared among different services. Since client is shared among services this is currently not a problem.
+         * url地址url实例的实例,所以参数实际上增加了参数添加到服务实例,
+         * 这意味着共享参数在不同的服务。由于客户端之间共享服务这是目前不是一个问题。
          */
         String str = url.getParameter(CLIENT_KEY, url.getParameter(SERVER_KEY, DEFAULT_REMOTING_CLIENT));
         url = url.addParameter(CODEC_KEY, DubboCodec.NAME);
@@ -639,10 +652,12 @@ public class DubboProtocol extends AbstractProtocol {
         ExchangeClient client;
         try {
             // connection should be lazy
+            // 懒连接，创建 LazyConnectExchangeClient 对象
             if (url.getParameter(LAZY_CONNECT_KEY, false)) {
                 client = new LazyConnectExchangeClient(url, requestHandler, DubboCodec.NAME, url.getParameters());
 
             } else {
+                // 直接连接，创建 HeaderExchangeClient 对象
                 client = Exchangers.connect(url, requestHandler);
             }
 

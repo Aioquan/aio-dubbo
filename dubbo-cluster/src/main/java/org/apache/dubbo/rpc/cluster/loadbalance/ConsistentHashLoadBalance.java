@@ -51,6 +51,7 @@ public class ConsistentHashLoadBalance extends AbstractLoadBalance {
         String methodName = RpcUtils.getMethodName(invocation);
         String key = invokers.get(0).getUrl().getServiceKey() + "." + methodName;
         // using the hashcode of list to compute the hash only pay attention to the elements in the list
+        // identityHashCode
         int invokersHashCode = getCorrespondingHashCode(invokers);
         ConsistentHashSelector<T> selector = (ConsistentHashSelector<T>) selectors.get(key);
         if (selector == null || selector.identityHashCode != invokersHashCode) {
@@ -101,6 +102,7 @@ public class ConsistentHashLoadBalance extends AbstractLoadBalance {
          */
         private static final double OVERLOAD_RATIO_THREAD = 1.5F;
 
+        // 一致性哈希选择器，基于 Ketama 算法
         ConsistentHashSelector(List<Invoker<T>> invokers, String methodName, int identityHashCode) {
             this.virtualInvokers = new TreeMap<Long, Invoker<T>>();
             this.identityHashCode = identityHashCode;

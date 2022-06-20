@@ -78,6 +78,13 @@ import static org.apache.dubbo.common.convert.Converter.convertIfPossible;
 import static org.apache.dubbo.common.utils.StringUtils.isBlank;
 
 /**
+ * 所有扩展点参数都包含 URL 参数，URL 作为上下文信息贯穿整个扩展点设计体系。
+ * URL 采用标准格式：protocol://username:password@host:port/path?key=value&key=value
+ *
+ * 所有配置最终都将转换为 Dubbo URL 表示，并由服务提供方生成，经注册中心传递给消费方，
+ * 各属性对应 URL 的参数，参见配置项一览表中的 “对应URL参数” 列。那么一个 Service 注册到注册中心的格式如下：
+ * dubbo://192.168.3.17:20880/com.alibaba.dubbo.demo.DemoService?anyhost=true&application=demo-provider&default.delay=-1&default.retries=0&default.service.filter=demoFilter&delay=-1&dubbo=2.0.0&generic=false&interface=com.alibaba.dubbo.demo.DemoService&methods=sayHello&pid=19031&side=provider&timestamp=1519651641799
+ *
  * URL - Uniform Resource Locator (Immutable, ThreadSafe)
  * <p>
  * url example:
@@ -1262,6 +1269,7 @@ class URL implements Serializable {
         return buildString(appendUser, appendParameter, false, false, parameters);
     }
 
+    // build
     private String buildString(boolean appendUser, boolean appendParameter, boolean useIP, boolean useService, String... parameters) {
         StringBuilder buf = new StringBuilder();
         if (StringUtils.isNotEmpty(getProtocol())) {

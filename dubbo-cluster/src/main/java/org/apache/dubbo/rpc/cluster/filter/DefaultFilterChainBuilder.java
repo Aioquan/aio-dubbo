@@ -39,6 +39,12 @@ public class DefaultFilterChainBuilder implements FilterChainBuilder {
 
     /**
      * build consumer/provider filter chain
+     * 创建带 Filter 链的 Invoker 对象
+     *
+     * 得的 Filter 数组如下：
+     * ConsumerContextFilter
+     * FutureFilter
+     * MonitorFilter
      */
     @Override
     public <T> Invoker<T> buildInvokerChain(final Invoker<T> originalInvoker, String key, String group) {
@@ -46,6 +52,7 @@ public class DefaultFilterChainBuilder implements FilterChainBuilder {
         URL url = originalInvoker.getUrl();
         List<ModuleModel> moduleModels = getModuleModelsFromUrl(url);
         List<Filter> filters;
+        // 获得过滤器数组
         if (moduleModels != null && moduleModels.size() == 1) {
             filters = ScopeModelUtil.getExtensionLoader(Filter.class, moduleModels.get(0)).getActivateExtension(url, key, group);
         } else if (moduleModels != null && moduleModels.size() > 1) {
@@ -62,7 +69,7 @@ public class DefaultFilterChainBuilder implements FilterChainBuilder {
             filters = ScopeModelUtil.getExtensionLoader(Filter.class, null).getActivateExtension(url, key, group);
         }
 
-
+        // 倒序循环 Filter ，创建带 Filter 链的 Invoker 对象
         if (!CollectionUtils.isEmpty(filters)) {
             for (int i = filters.size() - 1; i >= 0; i--) {
                 final Filter filter = filters.get(i);

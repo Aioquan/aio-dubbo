@@ -364,6 +364,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
         exported();
     }
 
+    // 开始暴露服务
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void doExportUrls() {
         ModuleServiceRepository repository = getScopeModel().getServiceRepository();
@@ -385,6 +386,8 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                     .orElse(path), group, version);
             // In case user specified path, register service one more time to map it to path.
             repository.registerService(pathKey, interfaceClass);
+            // 调用 #doExportUrlsFor1Protocol(protocolConfig, registryURLs) 方法，使用对应的协议，逐个向注册中心分组暴露服务。
+            // 在这个方法中，包含了本地和远程两种暴露方式。在下文中，我们会看到，本地暴露不会向注册中心注册服务，因为仅仅用于 JVM 内部本地调用，内存中已经有相关信息。
             doExportUrlsFor1Protocol(protocolConfig, registryURLs);
         }
     }
@@ -568,6 +571,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
             }
 
             // export to remote if the config is not local (export to local only when config is local)
+            // 服务远程暴露
             if (!SCOPE_LOCAL.equalsIgnoreCase(scope)) {
                 url = exportRemote(url, registryURLs);
                 MetadataUtils.publishServiceDefinition(url);
@@ -577,6 +581,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
         this.urls.add(url);
     }
 
+    // 远程暴露
     private URL exportRemote(URL url, List<URL> registryURLs) {
         if (CollectionUtils.isNotEmpty(registryURLs)) {
             for (URL registryURL : registryURLs) {
@@ -590,6 +595,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                 }
 
                 url = url.addParameterIfAbsent(DYNAMIC_KEY, registryURL.getParameter(DYNAMIC_KEY));
+                // 获得监控中心 URL
                 URL monitorUrl = ConfigValidationUtils.loadMonitor(this, registryURL);
                 if (monitorUrl != null) {
                     url = url.putAttribute(MONITOR_KEY, monitorUrl);
@@ -612,7 +618,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                 doExportUrl(registryURL.putAttribute(EXPORT_KEY, url), true);
             }
 
-        } else {
+        } else {// CollectionUtils.isEmpty(registryURLs)
 
             if (MetadataService.class.getName().equals(url.getServiceInterface())) {
                 localMetadataService.setMetadataServiceURL(url);
@@ -634,6 +640,11 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
         Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, url);
         if (withMetaData) {
             invoker = new DelegateProviderMetaDataInvoker(invoker, this);
+            // 就是套了一下
+            //    public DelegateProviderMetaDataInvoker(Invoker<T> invoker, ServiceConfig<?> metadata) {
+            //        this.invoker = invoker;
+            //        this.metadata = metadata;
+            //    }
         }
         Exporter<?> exporter = protocolSPI.export(invoker);
         exporters.add(exporter);
@@ -642,8 +653,10 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
 
     /**
      * always export injvm
+     * 本地暴露服务
      */
     private void exportLocal(URL url) {
+        // 创建本地 Dubbo URL
         URL local = URLBuilder.from(url)
                 .setProtocol(LOCAL_PROTOCOL)
                 .setHost(LOCALHOST_VALUE)

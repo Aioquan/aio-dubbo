@@ -192,6 +192,7 @@ public abstract class Proxy {
                     for (int j = 0; j < pts.length; j++) {
                         code.append(" args[").append(j).append("] = ($w)$").append(j + 1).append(";");
                     }
+                    // 实现这些定义在接口中的方法，收拢统一调用 java.lang.reflect.InvocationHandler#invoke(proxy, method, args) 方法。通过这样的方式，可以调用到最终的 Invoker#invoke(Invocation) 方法，实现 RPC 调用
                     code.append(" Object ret = handler.invoke(this, methods[").append(ix).append("], args);");
                     if (!Void.TYPE.equals(rt)) {
                         code.append(" return ").append(asArgument(rt, "ret")).append(';');

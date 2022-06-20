@@ -22,6 +22,7 @@ import org.apache.dubbo.common.extension.ExtensionScope;
 import org.apache.dubbo.common.extension.SPI;
 import org.apache.dubbo.rpc.model.ApplicationModel;
 
+// Zookeeper 工厂接口
 @SPI(scope = ExtensionScope.APPLICATION)
 public interface ZookeeperTransporter {
 
@@ -29,6 +30,12 @@ public interface ZookeeperTransporter {
 
     String CURATOR = "curator";
 
+    /**
+     * 连接创建 ZookeeperClient 对象
+     *
+     * @param url 注册中心地址
+     * @return ZookeeperClient 对象
+     */
     ZookeeperClient connect(URL url);
 
     void destroy();

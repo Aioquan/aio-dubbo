@@ -46,6 +46,7 @@ public class InjvmProtocol extends AbstractProtocol implements Protocol {
 
     public static final int DEFAULT_PORT = 0;
 
+    // 创建 InjvmInvoker 对象。注意，传入的 exporterMap 参数，包含所有的 InjvmExporter 对象。
     public static InjvmProtocol getInjvmProtocol(ScopeModel scopeModel) {
         return (InjvmProtocol) scopeModel.getExtensionLoader(Protocol.class).getExtension(InjvmProtocol.NAME, false);
     }

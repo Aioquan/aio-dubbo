@@ -94,6 +94,7 @@ import static org.apache.dubbo.common.constants.CommonConstants.REMOVE_VALUE_PRE
  * @see org.apache.dubbo.common.extension.SPI
  * @see org.apache.dubbo.common.extension.Adaptive
  * @see org.apache.dubbo.common.extension.Activate
+ * 拓展加载器。这是 Dubbo SPI 的核心。
  */
 public class ExtensionLoader<T> {
 
@@ -101,14 +102,17 @@ public class ExtensionLoader<T> {
 
     private static final Pattern NAME_SEPARATOR = Pattern.compile("\\s*[,]+\\s*");
 
+    // 拓展实现类集合
     private final ConcurrentMap<Class<?>, Object> extensionInstances = new ConcurrentHashMap<>(64);
 
     private final Class<?> type;
 
     private final ExtensionInjector injector;
 
+    // 缓存的拓展名与拓展类的映射。
     private final ConcurrentMap<Class<?>, String> cachedNames = new ConcurrentHashMap<>();
 
+    // 缓存的拓展实现类集合。
     private final Holder<Map<String, Class<?>>> cachedClasses = new Holder<>();
 
     private final Map<String, Object> cachedActivates = Collections.synchronizedMap(new LinkedHashMap<>());
@@ -130,6 +134,8 @@ public class ExtensionLoader<T> {
      * Record all unacceptable exceptions when using SPI
      */
     private Set<String> unacceptableExceptions = new ConcurrentHashSet<>();
+
+    // 拓展实现类管理者/负责人
     private ExtensionDirector extensionDirector;
     private List<ExtensionPostProcessor> extensionPostProcessors;
     private InstantiationStrategy instantiationStrategy;
@@ -293,7 +299,7 @@ public class ExtensionLoader<T> {
     }
 
     /**
-     * This is equivalent to {@code getActivateExtension(url, url.getParameter(key).split(","), null)}
+     * This is equivalent等效 to {@code getActivateExtension(url, url.getParameter(key).split(","), null)}
      *
      * @param url   url
      * @param key   url parameter key which used to get extension point names
@@ -761,7 +767,7 @@ public class ExtensionLoader<T> {
                 injectExtension(instance);
                 instance = postProcessAfterInitialization(instance, name);
             }
-
+            // wrap: 包装
             if (wrap) {
                 List<Class<?>> wrapperClassesList = new ArrayList<>();
                 if (cachedWrapperClasses != null) {
@@ -901,6 +907,7 @@ public class ExtensionLoader<T> {
         return getExtensionClasses().get(name);
     }
 
+    // 获得拓展实现类数组
     private Map<String, Class<?>> getExtensionClasses() {
         Map<String, Class<?>> classes = cachedClasses.get();
         if (classes == null) {
@@ -916,14 +923,19 @@ public class ExtensionLoader<T> {
     }
 
     /**
+     * 从多个配置文件中，加载拓展实现类数组。
+     *
      * synchronized in getExtensionClasses
+     * 无需声明 synchronized ，因为唯一调用该方法的 {@link #getExtensionClasses()} 已经声明。
      */
     private Map<String, Class<?>> loadExtensionClasses() {
         checkDestroyed();
+        // 通过 @SPI 注解，获得默认的拓展实现类名
         cacheDefaultExtensionName();
 
         Map<String, Class<?>> extensionClasses = new HashMap<>();
 
+        // 从配置文件中，加载拓展实现类数组
         for (LoadingStrategy strategy : strategies) {
             loadDirectory(extensionClasses, strategy, type.getName());
 
@@ -1231,6 +1243,7 @@ public class ExtensionLoader<T> {
 
     private Class<?> createAdaptiveExtensionClass() {
         // Adaptive Classes' ClassLoader should be the same with Real SPI interface classes' ClassLoader
+        // 自动生成自适应拓展的代码实现的字符串
         ClassLoader classLoader = type.getClassLoader();
         try {
             if (NativeUtils.isNative()) {
@@ -1242,6 +1255,11 @@ public class ExtensionLoader<T> {
         String code = new AdaptiveClassCodeGenerator(type, cachedDefaultName).generate();
         org.apache.dubbo.common.compiler.Compiler compiler = extensionDirector.getExtensionLoader(
             org.apache.dubbo.common.compiler.Compiler.class).getAdaptiveExtension();
+        // compiler.compile编译代码，并返回该类。Compiler 基于 Dubbo SPI 机制进行加载，目前有两种实现：
+        // JdkCompiler
+        // <dubbo:application compiler="jdk" />
+        // JavassistCompiler
+        // <dubbo:application compiler="javassist" />
         return compiler.compile(code, classLoader);
     }
 

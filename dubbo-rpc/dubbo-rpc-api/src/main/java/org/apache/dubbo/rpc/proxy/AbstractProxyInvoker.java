@@ -36,6 +36,7 @@ import static org.apache.dubbo.common.constants.CommonConstants.PROVIDER_ASYNC_K
 
 /**
  * This Invoker works on provider side, delegates RPC to interface implementation.
+ * on Consumer side {@link org.apache.dubbo.rpc.protocol.AbstractInvoker}
  */
 public abstract class AbstractProxyInvoker<T> implements Invoker<T> {
     Logger logger = LoggerFactory.getLogger(AbstractProxyInvoker.class);

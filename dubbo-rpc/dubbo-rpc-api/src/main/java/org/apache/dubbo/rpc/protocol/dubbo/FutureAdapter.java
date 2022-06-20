@@ -27,8 +27,11 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * This is the type of the Future instance users get in an async call:
+ * 这是未来的类型实例用户进入一个异步调用
  * 1. unwrap AppResponse in appResponseFuture and convert to plain biz result represented by FutureAdapter.
+ * 打开应用程序响应应用程序响应并转换为纯商业结果代表了未来适配器。
  * 2. customized behaviors meaningful for RPC, for example, {@link #cancel(boolean)}
+ * RPC定制的行为有意义,例如,{# @联系取消(布尔)}
  */
 public class FutureAdapter<V> extends CompletableFuture<V> {
 

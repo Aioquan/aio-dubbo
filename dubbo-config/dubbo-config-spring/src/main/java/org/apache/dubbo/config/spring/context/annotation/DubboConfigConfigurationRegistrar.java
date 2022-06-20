@@ -25,6 +25,7 @@ import org.springframework.core.type.AnnotationMetadata;
 
 /**
  * Dubbo {@link AbstractConfig Config} {@link ImportBeanDefinitionRegistrar register}, which order can be configured
+ * 实现 ImportBeanDefinitionRegistrar 接口，处理 @EnableDubboConfig 注解，注册相应的 DubboConfigConfiguration 到 Spring 容器中。
  *
  * @see EnableDubboConfig
  * @see DubboConfigConfiguration
